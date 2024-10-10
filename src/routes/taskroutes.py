@@ -10,7 +10,7 @@ router = APIRouter(
     tags=["Manage Tasks"]
 )
 
-schemas.Base.metadata.create_all(engine)
+schemas.Base.metadata.create_all(bind=engine)
 
 @router.get('/tasks',status_code=status.HTTP_200_OK)
 async def listAlltasks():

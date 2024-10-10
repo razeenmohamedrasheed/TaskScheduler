@@ -1,8 +1,26 @@
 from sqlalchemy import Column,Integer,String,ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
-from src.db import Base
+from sqlalchemy.orm import relationship
+from src.db import Base,engine
 
 Base = declarative_base()
+
+class Role(Base):
+    __tablename__ = 'roles'
+    role_id = Column(Integer, primary_key=True, index=True)
+    role_name = Column(String, unique=True, nullable=False)
+
+class Users(Base):
+    __tablename__ = 'users'
+    userid = Column(Integer,primary_key=True,index=True)
+    role_id = Column(Integer, ForeignKey('roles.role_id'))
+    username = Column(String)
+    email = Column(String)
+    contact = Column(String)
+    password = Column(String)
+
+    role = relationship("Role")
+
 
 class Task(Base):
     __tablename__ = 'task'
@@ -12,3 +30,4 @@ class Task(Base):
     description = Column(String)
     start_date = Column(String)
     end_date = Column(String)
+
