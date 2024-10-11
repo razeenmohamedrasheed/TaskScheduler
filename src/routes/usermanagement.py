@@ -1,4 +1,5 @@
 from fastapi import APIRouter,status,HTTPException
+from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from src.models.user_models import user,login
 from typing import List
@@ -55,7 +56,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     return encoded_jwt
 
 @router.post("/login", status_code=status.HTTP_200_OK)
-async def login(payload:login, db: Session = Depends(get_db)):
+async def login(payload:OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     try:
         user = db.query(schemas.Users).filter(schemas.Users.username == payload.username).first()
 
@@ -66,10 +67,10 @@ async def login(payload:login, db: Session = Depends(get_db)):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"sub": user.username}, 
+             data={"sub": user.username, "role_id": user.role_id,"user_id":user.userid}, 
             expires_delta=access_token_expires
         )
-        
+
         return {
             "message": "Login successful",
             "user_id": user.userid,
