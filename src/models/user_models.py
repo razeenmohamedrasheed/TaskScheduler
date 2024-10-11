@@ -7,3 +7,7 @@ class user(BaseModel):
     email:str
     contact:str
     password:str
+
+class login(BaseModel):
+    username:str
+    password:str

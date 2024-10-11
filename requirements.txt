@@ -5,3 +5,4 @@ sqlalchemy
 passlib
 bcrypt
 argon2_cffi
+python-jose
