@@ -67,7 +67,7 @@ async def login(payload:OAuth2PasswordRequestForm = Depends(), db: Session = Dep
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-             data={"sub": user.username, "role_id": user.role_id,"user_id":user.userid}, 
+             data={"sub": user.username, "role_id": user.role_id,"user_id":user.userid,"email":user.email}, 
             expires_delta=access_token_expires
         )
 

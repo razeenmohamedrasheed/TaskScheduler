@@ -15,6 +15,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         username: str = payload.get("sub")
         role_id: int = payload.get("role_id") 
         user_id:int = payload.get("user_id")
+        email:int = payload.get("email")
 
         if username is None or role_id is None:
             raise HTTPException(
@@ -31,7 +32,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
                 detail="User not found"
             )
 
-        return {"user": user, "role_id": role_id,"user_id":user_id}
+        return {"user": user, "role_id": role_id,"user_id":user_id,"email":email}
 
     except JWTError:
         raise HTTPException(

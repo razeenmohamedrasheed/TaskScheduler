@@ -1,4 +1,4 @@
-from sqlalchemy import Column,Integer,String,ForeignKey
+from sqlalchemy import Column,Integer,String,ForeignKey,Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime,timezone
@@ -29,7 +29,9 @@ class Task(Base):
     user_id = Column(Integer,ForeignKey('users.userid'), nullable=False) 
     title = Column(String)
     description = Column(String)
-    start_date = Column(String, default=str(datetime.now(timezone.utc).date))
-    end_date = Column(String, default=str(datetime.now(timezone.utc).date))
+    start_date = Column(String, default=lambda: str(datetime.now(timezone.utc).date()))
+    end_date = Column(String, default=lambda: str(datetime.now(timezone.utc).date()))
+    reminder_sent = Column(Boolean, default=False)  
+    reminder_time = Column(String, default=lambda: str(datetime.now(timezone.utc).date()))    
 
     user  = relationship("Users")
