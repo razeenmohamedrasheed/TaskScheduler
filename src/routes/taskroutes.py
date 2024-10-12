@@ -50,18 +50,26 @@ async def send_reminder_email(task, current_user):
 async def listAlltasks(db:Session = Depends(get_db),current_user: dict = Depends(get_current_user)):
     try:
         if current_user["role_id"] != 1:
-            raise HTTPException(status_code=403, detail="No Permission ")
+            raise HTTPException(status_code=403, detail="Only Admin can view this ")
+
         tasks = db.query(schemas.Task).all()
         return tasks
+    
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="No access to this API")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Error")
 
 @router.post('/tasks',status_code=status.HTTP_201_CREATED)
 async def createTask(payload:task,background_tasks: BackgroundTasks, db:Session = Depends(get_db),current_user: dict = Depends(get_current_user)):
    
    try:
         if current_user["role_id"] != 1:
+            # Ensure the user can only create tasks for themselves
+            if payload.user_id != current_user["user"].userid:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to create tasks for other users.")
+            # Assign the current user's ID to the task's user_id if they are not an admin
             payload.user_id = current_user["user"].userid
 
       
@@ -90,6 +98,8 @@ async def createTask(payload:task,background_tasks: BackgroundTasks, db:Session 
             "task_id": new_task.taskid
         }
 
+   except HTTPException as http_exc:
+        raise http_exc
    except Exception as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred while creating the task.")
@@ -98,16 +108,18 @@ async def createTask(payload:task,background_tasks: BackgroundTasks, db:Session 
 @router.get('/tasks/{user_id}', status_code=status.HTTP_200_OK)
 async def lisIndividualTasks(user_id:int, db: Session = Depends(get_db),current_user: dict = Depends(get_current_user) ):
     try:
-        print(current_user)
         tasks = db.query(schemas.Task).filter(schemas.Task.user_id == user_id).all()
-        print(tasks)
+
         if not tasks:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No tasks found for this user.")
  
-        if current_user["role_id"] != 1:  # Not an admin
-            if user_id != current_user["user"].userid:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to view these tasks.")
+        if current_user["role_id"] != 1 and user_id != current_user["user"].userid:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to view these tasks.")
         return tasks
+    
+    except HTTPException as http_exc:
+        raise http_exc
+    
     except Exception as e:
         print(f"Error occurred: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error Occured")
@@ -121,7 +133,7 @@ async def update_task(task_id: int,payload:updatetask, db: Session = Depends(get
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found.")
             
             if current_user["role_id"] != 1 and task.user_id != current_user["user"].userid:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to update this task.")
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to create  task for this user.")
 
             task.title = payload.title if payload.title is not None or '' else task.title
             task.description = payload.description  if payload.title is not None or '' else task.description
@@ -135,6 +147,8 @@ async def update_task(task_id: int,payload:updatetask, db: Session = Depends(get
                 "message": "Task updated successfully",
                 "data": task
             }
+        except HTTPException as http_exc:
+            raise http_exc
         except Exception as e:
             db.rollback()
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred while updating the task.")
@@ -157,6 +171,8 @@ async def delete_task(task_id: int, db: Session = Depends(get_db),current_user: 
             "message": "Task deleted successfully",
             "task_id": task_id
         }
+    except HTTPException as http_exc:
+        raise http_exc
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred while deleting the task.")
