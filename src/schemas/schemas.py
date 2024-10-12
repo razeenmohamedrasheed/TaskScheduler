@@ -35,3 +35,18 @@ class Task(Base):
     reminder_time = Column(String, default=lambda: str(datetime.now(timezone.utc).date()))    
 
     user  = relationship("Users")
+
+
+def create_default_roles(db):
+    admin_role = db.query(Role).filter(Role.role_name == 'Admin').first()
+    user_role = db.query(Role).filter(Role.role_name == 'User').first()
+    
+    if not admin_role:
+        new_admin_role = Role(role_name='Admin')
+        db.add(new_admin_role)
+    
+    if not user_role:
+        new_user_role = Role(role_name='User')
+        db.add(new_user_role)
+
+    db.commit()

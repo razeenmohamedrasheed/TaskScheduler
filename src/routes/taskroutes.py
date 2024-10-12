@@ -8,8 +8,6 @@ from src.db import get_db,SessionLocal,engine
 from src.schemas import schemas
 from src.utility.auth import get_current_user 
 from datetime import date,datetime
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 

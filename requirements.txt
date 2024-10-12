@@ -7,4 +7,4 @@ bcrypt
 argon2_cffi
 python-jose
 python-multipart
-sendgrid
+pytest
